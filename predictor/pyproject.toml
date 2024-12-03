@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "predictor"
+version = "0.1.0"
+description = ""
+authors = ["Albert Namaev <anamaev263@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = {extras = ["all"], version = "^0.115.5"}
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.8.1"
+mypy = "^1.8.0"
+devtools = "^0.12.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

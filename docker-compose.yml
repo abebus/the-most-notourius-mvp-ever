@@ -1,0 +1,14 @@
+services:
+  tgbot:
+    restart: on-failure
+    build:
+      dockerfile: ./tgbot.dockerfile
+      context: .
+  predictor:
+    restart: on-failure
+    build: 
+      dockerfile: ./predictor.dockerfile
+      context: .
+  postgres:
+    image: postgres:latest
+    restart: on-failure

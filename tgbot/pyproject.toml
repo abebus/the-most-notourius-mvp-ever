@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "tgbot"
+version = "0.1.0"
+description = ""
+authors = ["Albert Namaev <anamaev263@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+aiogram = "^3.15.0"
+
+
+[tool.poetry.group.dev.dependencies]
+devtools = "^0.12.2"
+ruff = "^0.8.1"
+mypy = "^1.13.0"
+uvloop = "^0.21.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
