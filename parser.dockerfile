@@ -2,7 +2,7 @@ FROM python:slim
 
 WORKDIR /usr/src/app
 
-COPY tgbot .
+COPY parser .
 
 RUN pip install poetry
 
@@ -13,4 +13,4 @@ RUN poetry install --only main --no-interaction --no-ansi
 
 WORKDIR /usr/src/app/src
 
-CMD ["main.py"]
+CMD ["scrapyrt", "-s", "ASYNCIO_EVENT_LOOP='uvloop.Loop'"]
