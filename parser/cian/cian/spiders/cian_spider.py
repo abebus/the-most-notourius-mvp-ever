@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 
 class CianSpider(scrapy.Spider):
     name = "cian_spider"
-    start_urls = ["https://www.cian.ru/sale/flat/309615216/"]
 
     def parse(self, response: scrapy.http.TextResponse):
         # Extract JavaScript containing offer data
