@@ -42,36 +42,6 @@ class FixedUserAgentProvider(BaseProvider):
         return self._ua
 
 
-class FakeUserAgentProvider(BaseProvider):
-    """
-    Provides a random, real-world set of UA strings,
-    powered by the fake_useragent library.
-    """
-
-    DEFAULT_UA_TYPE = "random"
-
-    def __init__(self, settings):
-        BaseProvider.__init__(self, settings)
-
-        self._ua_type = settings.get(
-            "FAKE_USERAGENT_RANDOM_UA_TYPE", self.DEFAULT_UA_TYPE
-        )
-
-        fallback = settings.get("FAKEUSERAGENT_FALLBACK", None)
-        if fallback:
-            self._ua = fake_useragent.UserAgent(fallback=fallback)
-        else:
-            self._ua = fake_useragent.UserAgent()
-
-    def get_random_ua(self):
-        """
-        If the UA type attribute is not found,
-        fake user agent provider falls back to fallback by default.
-        No need to handle AttributeError.
-        """
-        return getattr(self._ua, self._ua_type)
-
-
 class FakerProvider(BaseProvider):
     """
     Provides a random set of UA strings, powered by the Faker library.
@@ -96,11 +66,34 @@ class FakerProvider(BaseProvider):
             )
             return getattr(self._ua, self.DEFAULT_UA_TYPE)()
 
-class FakeChromePCProvider(BaseProvider):
-    def __init__(self, settings):
-        super().__init__(self, settings)
 
-        self._ua = fake_useragent.FakeUserAgent(browsers=["chrome"], platforms=["pc"])
+class FakeUserAgentProvider(BaseProvider):
+    """
+    Provides a random, real-world set of UA strings,
+    powered by the fake_useragent library.
+    """
+
+    DEFAULT_UA_TYPE = "random"
+
+    def __init__(self, settings):
+        BaseProvider.__init__(self, settings)
+
+        self._ua_type = settings.get(
+            "FAKE_USERAGENT_RANDOM_UA_TYPE", self.DEFAULT_UA_TYPE
+        )
+
+        fallback = settings.get(
+            "FAKEUSERAGENT_FALLBACK", FakerProvider(settings).get_random_ua()
+        )
+        if fallback:
+            self._ua = fake_useragent.UserAgent(fallback=fallback, platforms=["pc"])
+        else:
+            self._ua = fake_useragent.UserAgent()
 
     def get_random_ua(self):
-        return self._ua
+        """
+        If the UA type attribute is not found,
+        fake user agent provider falls back to fallback by default.
+        No need to handle AttributeError.
+        """
+        return getattr(self._ua, self._ua_type)

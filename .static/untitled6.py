@@ -8,103 +8,118 @@ Original file is located at
 """
 
 import pandas as pd
-
-def filter_csv_columns(input_file: str, output_file: str):
-    # Define the columns to keep with their data types
-    columns_to_keep = [
-        'cian_id', 'city', 'street', 'lat', 'lon', 'price_sq', 'area', 'floor',
-        'kitchen_area', 'bathroom_type', 'balconies', 'renovation', 'is_apartment',
-        'rooms', 'ceiling_height', 'house_floors', 'house_wall_type', 'lifts',
-        'freight_lifts', 'time_on_foot_to_subway', 'build_year'
-    ]
-
-    try:
-        # Read the CSV file
-        df = pd.read_csv(input_file)
-
-        # Check if the necessary columns exist
-        missing_columns = [col for col in columns_to_keep if col not in df.columns]
-        if missing_columns:
-            raise ValueError(f"Missing columns in input file: {missing_columns}")
-
-        # Select only the required columns
-        filtered_df = df[columns_to_keep]
-
-        # Save the resulting DataFrame to a new CSV file
-        filtered_df.to_csv(output_file, index=False)
-
-        print(f"Filtered data saved to {output_file}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-# Example usage
-input_csv = 'cian_25.11.24.csv'  # Path to your input CSV file
-output_csv = 'filtered_output.csv'  # Path to save the filtered CSV
-filter_csv_columns(input_csv, output_csv)
-
-import pandas as pd
 import numpy as np
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split, GridSearchCV
+
+from xgboost import XGBRegressor
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 import joblib
+from geopy.distance import geodesic
+
+
+RANDOM_STATE = 1
+
+
 def train_model(csv_file: str, model_file: str):
     # Read the CSV file
     df = pd.read_csv(csv_file)
 
     # Define features and target
-    target = 'price_sq'
+    target = "price_sq"
     features = [
-        'lat', 'lon', 'area', 'floor', 'kitchen_area', 'balconies', 'renovation',
-        'is_apartment', 'rooms', 'ceiling_height', 'house_floors', 'lifts',
-        'freight_lifts', 'time_on_foot_to_subway', 'build_year', 'city', 'street',
-        'bathroom_type', 'house_wall_type'
+        "lat",
+        "lon",
+        "area",
+        "floor",
+        "kitchen_area",
+        "balconies",
+        "renovation",
+        "is_apartment",
+        "rooms",
+        "ceiling_height",
+        "house_floors",
+        "lifts",
+        "freight_lifts",
+        "time_on_foot_to_subway",
+        "build_year",
+        "bathroom_type",
+        "house_wall_type",
+    ]
+    numeric_features = [
+        "lat",
+        "lon",
+        "area",
+        "floor",
+        "kitchen_area",
+        "rooms",
+        "ceiling_height",
+        "house_floors",
+        "lifts",
+        "freight_lifts",
+        "time_on_foot_to_subway",
+        "build_year",
+    ]
+    categorical_features = [
+        "renovation",
+        "balconies",
+        "bathroom_type",
+        "house_wall_type",
     ]
 
+    numeric_transformer = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="mean")),
+            ("scaler", StandardScaler()),
+        ],
+        verbose=True,
+    )
 
-    # Preprocess the data
-    numeric_features = ['lat', 'lon', 'area', 'floor', 'kitchen_area',
-                        'rooms', 'ceiling_height', 'house_floors',
-                        'lifts', 'freight_lifts', 'time_on_foot_to_subway', 'build_year']
-    categorical_features = ['city', 'renovation', 'balconies','street', 'bathroom_type', 'house_wall_type']
-    # Replace commas with dots for all numeric features
-    for feature in numeric_features:
-        df[feature] = df[feature].replace({',': '.'}, regex=True).astype(float)
-        df[feature] = pd.to_numeric(df[feature], errors='coerce')  # Convert to float and handle errors
-
-    numeric_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='mean')),
-        ('scaler', StandardScaler())
-    ])
-
-    categorical_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='most_frequent')),
-        ('onehot', OneHotEncoder(handle_unknown='ignore'))
-    ])
+    categorical_transformer = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("onehot", OneHotEncoder(handle_unknown="ignore")),
+        ],
+        verbose=True,
+    )
 
     preprocessor = ColumnTransformer(
+        n_jobs=-1,
         transformers=[
-            ('num', numeric_transformer, numeric_features),
-            ('cat', categorical_transformer, categorical_features)
-        ]
+            ("num", numeric_transformer, numeric_features),
+            ("cat", categorical_transformer, categorical_features),
+        ],
     )
 
     # Define the model pipeline
-    model = Pipeline(steps=[
-        ('preprocessor', preprocessor),
-        ('regressor', RandomForestRegressor(random_state=42))
-    ])
+    model = Pipeline(
+        steps=[
+            ("preprocessor", preprocessor),
+            (
+                "regressor",
+                XGBRegressor(
+                    objective="reg:squarederror",
+                    random_state=RANDOM_STATE,
+                    verbosity=2,
+                    max_depth=0,
+                ),
+            ),
+        ],
+        verbose=True,
+    )
 
     X = df[features]
     y = df[target]
     # Split the data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.1, random_state=RANDOM_STATE
+    )
 
+    # model = joblib.load(model_file)
     # Train the model
     model.fit(X_train, y_train)
 
@@ -112,7 +127,7 @@ def train_model(csv_file: str, model_file: str):
     joblib.dump(model, model_file)
 
     print(f"Model trained and saved to {model_file}")
-        # Predictions
+    # Predictions
     y_pred = model.predict(X_test)
 
     # Calculate metrics
@@ -122,12 +137,59 @@ def train_model(csv_file: str, model_file: str):
     r2 = r2_score(y_test, y_pred)
 
     # Print evaluation metrics
-    print(f"Model Evaluation:")
+    print("Model Evaluation:")
     print(f"R-squared: {r2:.4f}")
     print(f"Mean Absolute Error (MAE): {mae:.4f}")
     print(f"Mean Squared Error (MSE): {mse:.4f}")
     print(f"Root Mean Squared Error (RMSE): {rmse:.4f}")
 
-model_file = 'model.pkl'  # Path to save the trained model
 
-train_model('filtered_output.csv', model_file)
+train_model("kazan.csv", "kazan_model_xgb.pkl")
+def clear_data():
+    df = pd.read_csv("cian_25.11.24.csv")
+
+    df = df[df["city"] == "Казань"]
+    df = df[[
+        "price_sq",
+            "lat",
+            "lon",
+            "area",
+            "floor",
+            "kitchen_area",
+            "balconies",
+            "renovation",
+            "is_apartment",
+            "rooms",
+            "ceiling_height",
+            "house_floors",
+            "lifts",
+            "freight_lifts",
+            "time_on_foot_to_subway",
+            "build_year",
+            "bathroom_type",
+            "house_wall_type",
+        ]]
+        # Preprocess the data
+    numeric_features = [
+        "lat",
+        "lon",
+        "area",
+        "floor",
+        "kitchen_area",
+        "rooms",
+        "ceiling_height",
+        "house_floors",
+        "lifts",
+        "freight_lifts",
+        "time_on_foot_to_subway",
+        "build_year",
+    ]
+    # Replace commas with dots for all numeric features
+    for feature in numeric_features:
+        df[feature] = df[feature].replace({",": "."}, regex=True).astype(float)
+        df[feature] = pd.to_numeric(
+            df[feature], errors="coerce"
+        )  # Convert to float and handle errors
+    df.to_csv("kazan.csv")
+
+# clear_data()

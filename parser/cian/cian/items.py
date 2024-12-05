@@ -320,7 +320,6 @@ class Newbuilding(TypedDict):
     isReliable: bool
 
 
-
 class HouseBuilding(TypedDict):
     isReliable: bool
     isFinished: bool
@@ -405,14 +404,12 @@ class NewObject(TypedDict):
     transportAccessibilityRate: float
 
 
-
 class NewObjectNewbuildingFeatures(TypedDict):
     imagesCount: int
     firstImageUrl: str
     videosCount: int
     reviewsCount: int
     hasProgressOfConstructions: bool
-
 
 
 class NewObjectDeveloper(TypedDict):
@@ -507,7 +504,6 @@ class BuildingStatu(TypedDict):
     statusId: int
 
 
-
 class CompanyStats(TypedDict):
     housesDone: HousesInProgressOrHousesDone
     housesInProgress: HousesInProgressOrHousesDone
@@ -536,7 +532,6 @@ class ReviewStats(TypedDict):
     reviewCount: int
     reviewCountText: str
     totalRate: float
-
 
 
 class Stats(TypedDict):
@@ -579,7 +574,6 @@ class Agent(TypedDict):
     agentlists: list[Any]
 
 
-
 class AgentPhone(TypedDict):
     confirmed: bool
 
@@ -590,7 +584,6 @@ class AvailableServices(TypedDict):
     isPhoneChangingAvailable: bool
     isServicePackagesAvailable: bool
     canUseHiddenBase: bool
-
 
 
 class AgentModerationInfo(TypedDict):
@@ -695,12 +688,10 @@ class Factoid(TypedDict):
     value: str
 
 
-
 class Feature(TypedDict):
     title: str
     id: str
     features: list[FeatureValue]
-
 
 
 class FeatureValue(TypedDict):

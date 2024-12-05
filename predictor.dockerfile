@@ -1,16 +1,8 @@
-FROM python:slim
-
-WORKDIR /usr/src/app
+FROM baseimg
 
 COPY predictor .
-
-RUN pip install poetry
-
-ARG DEV_DEPS=False
-
+COPY .static .static
 RUN poetry config virtualenvs.create false
 RUN poetry install --only main --no-interaction --no-ansi 
 
-WORKDIR /usr/src/app/src
-
-CMD ["main.py"]
+CMD ["poetry", "run", "uvicorn", "main:app","--host", "0.0.0.0"]

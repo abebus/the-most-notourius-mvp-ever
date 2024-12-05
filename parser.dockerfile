@@ -1,16 +1,10 @@
-FROM python:slim
-
-WORKDIR /usr/src/app
+FROM baseimg
 
 COPY parser .
-
-RUN pip install poetry
-
-ARG DEV_DEPS=False
 
 RUN poetry config virtualenvs.create false
 RUN poetry install --only main --no-interaction --no-ansi 
 
-WORKDIR /usr/src/app/src
+WORKDIR ./cian
 
-CMD ["scrapyrt", "-s", "ASYNCIO_EVENT_LOOP='uvloop.Loop'"]
+CMD ["poetry", "run", "scrapyrt", "-s", "ASYNCIO_EVENT_LOOP='uvloop.Loop'", "-s", "LOG_FILE=/logs/parser.log", "-s", "LOG_LEVEL='DEBUG'", "-i", "0.0.0.0"]

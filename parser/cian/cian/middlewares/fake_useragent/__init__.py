@@ -50,10 +50,6 @@ class RandomUserAgentBase:
         logger.info("Using '%s' as the User-Agent provider", type(provider))
         return provider
 
-def impersonate_based_on_ua(request, ua_str: bytes):
-    for browser in [b"chrome", b"edge", b"safari"]:
-        if browser in ua_str.lower():
-            request.meta["impersonate"] = browser.decode()
 
 class RandomUserAgentMiddleware(RandomUserAgentBase):
     def __init__(self, crawler):
@@ -76,8 +72,6 @@ class RandomUserAgentMiddleware(RandomUserAgentBase):
             request.headers["User-Agent"] = self._proxy2ua[proxy]
         else:
             request.headers["User-Agent"] = self._ua_provider.get_random_ua()
-        
-        impersonate_based_on_ua(request, request.headers["User-Agent"])
 
 
 class RetryUserAgentMiddleware(RetryMiddleware, RandomUserAgentBase):
@@ -101,6 +95,7 @@ class RetryUserAgentMiddleware(RetryMiddleware, RandomUserAgentBase):
         if response.status in self.retry_http_codes:
             reason = response_status_message(response.status)
             request.headers["User-Agent"] = self._ua_provider.get_random_ua()
+            logger.debug(f"Using {request.headers["User-Agent"]} as UA")
             return self._retry(request, reason, spider) or response
 
         return response
@@ -110,4 +105,5 @@ class RetryUserAgentMiddleware(RetryMiddleware, RandomUserAgentBase):
             "dont_retry", False
         ):
             request.headers["User-Agent"] = self._ua_provider.get_random_ua()
+            logger.debug(f"Using {request.headers["User-Agent"]} as UA")
             return self._retry(request, exception, spider)

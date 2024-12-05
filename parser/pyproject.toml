@@ -19,6 +19,7 @@ faker = "^33.1.0"
 twisted = {extras = ["http2"], version = "^24.11.0"}
 scrapy-impersonate = "^1.4.1"
 orjson = "^3.10.12"
+loguru = "^0.7.2"
 
 
 [tool.poetry.group.dev.dependencies]

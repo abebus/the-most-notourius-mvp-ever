@@ -1,19 +1,36 @@
 services:
   tgbot:
+    hostname: tgbot
     restart: on-failure
     build:
       dockerfile: ./tgbot.dockerfile
       context: .
+    env_file:
+      - ./.env
   predictor:
+    hostname: predictor
     restart: on-failure
     build: 
       dockerfile: ./predictor.dockerfile
       context: .
+    ports:
+      - 8000:8000
   parser:
+    hostname: parser
     restart: on-failure
+    depends_on:
+      - baseimg
     build: 
       dockerfile: ./parser.dockerfile
       context: .
-  postgres:
-    image: postgres:latest
-    restart: on-failure
+    # environment:
+    #   - HTTP_PROXY=${PARSER_PROXY}
+    #   - HTTPS_PROXY=${PARSER_PROXY}
+    volumes:
+      - ./logs:/logs
+  # postgres:
+  #   image: postgres:latest
+  #   restart: on-failure
+  baseimg:
+    build: 
+      dockerfile: ./baseimg.dockerfile

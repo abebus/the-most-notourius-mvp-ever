@@ -1,7 +1,5 @@
-
 from pydantic_settings import BaseSettings
 import pathlib
-
 
 
 class Settings(BaseSettings):
