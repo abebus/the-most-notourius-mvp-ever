@@ -59,7 +59,12 @@ async def process_link(message: Message):
             logging.info(final_response)
 
     # Send the final response back to the user
-    await message.reply(text=str(final_response))
+    await message.reply(
+        text=(
+            f"Предсказанная цена за кв. метр: {final_response["square_price"]}. "
+            f"Полная: {float(final_response["square_price"]) * float(data1["items"][0]["area"])}. "
+        )
+    )
 
 
 async def main() -> None:
